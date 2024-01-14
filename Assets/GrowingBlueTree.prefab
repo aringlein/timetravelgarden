@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2600474005209242329
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 141440480343657962}
+  - component: {fileID: -3496673038534466896}
+  m_Layer: 0
+  m_Name: GrowingBlueTree
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &141440480343657962
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2600474005209242329}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-3496673038534466896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2600474005209242329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e67d2a3e62ed2b04598a5f41a109ca6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  treePrefabYoung: {fileID: 1139572726157748, guid: 302ec27c4d9b3e740b2efad0afa014d9, type: 3}
+  treePrefabMiddle: {fileID: 1301814490440934, guid: ceda9264631b6aa4f934a7bfed059412, type: 3}
+  treePrefabOld: {fileID: 1356352691811968, guid: e82cbc90604251546bfdea141a81b7d5, type: 3}
+  birthTime: 0
+  timeToBeYoung: 20
+  timeToBeMiddle: 30
+  gameManager: {fileID: 0}
+  SCALE_RATE: 0.02
+  MAX_SCALE: 2

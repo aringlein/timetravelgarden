@@ -7,13 +7,20 @@ using TMPro;
 
 public class gamemanager : MonoBehaviour
 {
-    public GameObject treePrefab;
+    public GameObject growingLemonTreePrefab;
+    public GameObject growingBlueTreePrefab;
+    public GameObject growingDeathTreePrefab;
 
     public Slider slider;
 
     public TextMeshProUGUI clock;
 
     public TMP_Dropdown seedSelector;
+    public TextMeshProUGUI seedCounts;
+
+    public int lemonSeeds = 10;
+    public int blueSeeds = 10;
+    public int deathSeeds = 10;
 
     public int GRID_SIZE = 4;
     public int PLANE_SIZE = 6;
@@ -56,20 +63,28 @@ public class gamemanager : MonoBehaviour
 
                 //  Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
 
-                GameObject tree = Instantiate(treePrefab, finalPoint, Quaternion.identity);
-                growingtree treeScript = tree.GetComponent<growingtree>();
+                GameObject prefabToInstantiate;
                 switch (seedSelector.value)
                 {
                     case 0:
-                        treeScript.treeType = growingtree.TreeType.Lemon;
+                        if (lemonSeeds <= 0) return;
+                        prefabToInstantiate = growingLemonTreePrefab;
+                        lemonSeeds -= 1;
                         break;
                     case 1:
-                        treeScript.treeType = growingtree.TreeType.Orange;
+                        if (blueSeeds <= 0) return;
+                        prefabToInstantiate = growingBlueTreePrefab;
+                        blueSeeds -= 1;
                         break;
                     case 2:
-                        treeScript.treeType = growingtree.TreeType.Apple;
+                    default:
+                        if (deathSeeds <= 0) return;
+                        prefabToInstantiate = growingDeathTreePrefab;
+                        deathSeeds -= 1;
                         break;
                 }
+
+                GameObject tree = Instantiate(prefabToInstantiate, finalPoint, Quaternion.identity);
 
 
             }
@@ -91,5 +106,7 @@ public class gamemanager : MonoBehaviour
         //float minutesToDisplay = (hoursToDisplay - hours) * 60;
         //int minutes = (int)Math.Floor(minutesToDisplay);
         clock.text = daysInt + " days, " + hours + " hours";
+
+        seedCounts.text = "Lemon Seeds: " + lemonSeeds + "\nBlue Seeds: " + blueSeeds + "\nDeath Seeds: " + deathSeeds;
     }
 }

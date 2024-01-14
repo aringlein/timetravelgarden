@@ -5,9 +5,10 @@ using Math = System.Math;
 
 public class growingtree : MonoBehaviour
 {
-    public GameObject lemonTreePrefabYoung;
-    public GameObject lemonTreePrefabMiddle;
-    public GameObject lemonTreePrefabOld;
+    public GameObject treePrefabYoung;
+    public GameObject treePrefabMiddle;
+    public GameObject treePrefabOld;
+
     public double birthTime;
     public double timeToBeYoung;
     public double timeToBeMiddle;
@@ -15,14 +16,6 @@ public class growingtree : MonoBehaviour
     private GameObject ownedTree;
 
     public GameObject gameManager;
-
-    public enum TreeType
-    {
-        Lemon,
-        Orange,
-        Apple
-    }
-    public TreeType treeType;
 
     private enum TreeState
     {
@@ -49,7 +42,7 @@ public class growingtree : MonoBehaviour
     {
         gameManager = GameObject.Find("GameManager");
         // Instantiate a lemon tree prefab at the intersection point
-        ownedTree = Instantiate(lemonTreePrefabYoung, transform.position, Quaternion.identity);
+        ownedTree = Instantiate(treePrefabYoung, transform.position, Quaternion.identity);
         birthTime = getCurrentTime();
         treeState = TreeState.Young;
     }
@@ -81,19 +74,19 @@ public class growingtree : MonoBehaviour
         {
             treeState = TreeState.Young;
             Destroy(ownedTree);
-            ownedTree = Instantiate(lemonTreePrefabYoung, transform.position, Quaternion.identity);
+            ownedTree = Instantiate(treePrefabYoung, transform.position, Quaternion.identity);
         }
         else if (timeSinceBirth > timeToBeYoung && timeSinceBirth <= timeToBeYoung + timeToBeMiddle && treeState != TreeState.Middle)
         {
             treeState = TreeState.Middle;
             Destroy(ownedTree);
-            ownedTree = Instantiate(lemonTreePrefabMiddle, transform.position, Quaternion.identity);
+            ownedTree = Instantiate(treePrefabMiddle, transform.position, Quaternion.identity);
         }
         else if (timeSinceBirth > timeToBeMiddle + timeToBeYoung && treeState != TreeState.Old)
         {
             treeState = TreeState.Old;
             Destroy(ownedTree);
-            ownedTree = Instantiate(lemonTreePrefabOld, transform.position, Quaternion.identity);
+            ownedTree = Instantiate(treePrefabOld, transform.position, Quaternion.identity);
         }
 
     }
