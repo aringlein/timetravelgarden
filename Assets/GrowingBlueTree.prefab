@@ -47,9 +47,12 @@ MonoBehaviour:
   treePrefabYoung: {fileID: 1139572726157748, guid: 302ec27c4d9b3e740b2efad0afa014d9, type: 3}
   treePrefabMiddle: {fileID: 1301814490440934, guid: ceda9264631b6aa4f934a7bfed059412, type: 3}
   treePrefabOld: {fileID: 1356352691811968, guid: e82cbc90604251546bfdea141a81b7d5, type: 3}
+  seedPrefab: {fileID: 5943492688468611428, guid: 2c24aa60a02711d4395112b93b8d2b63, type: 3}
   birthTime: 0
   timeToBeYoung: 20
   timeToBeMiddle: 30
+  timeToBeOld: 10
   gameManager: {fileID: 0}
+  treeType: 1
   SCALE_RATE: 0.02
   MAX_SCALE: 2

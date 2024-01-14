@@ -34,6 +34,22 @@ public class gamemanager : MonoBehaviour
         currentTime = 0; //Time.time;
     }
 
+    public void pickUpSeed(growingtree.TreeType treeType, int count)
+    {
+        switch (treeType)
+        {
+            case growingtree.TreeType.Lemon:
+                lemonSeeds += count;
+                break;
+            case growingtree.TreeType.Blue:
+                blueSeeds += count;
+                break;
+            case growingtree.TreeType.Death:
+                deathSeeds += count;
+                break;
+        }
+    }
+
     void spawnTreeOnClick()
     {
         // Spawn a cube when mouse is clicked, where the mouse intersects with the plane
