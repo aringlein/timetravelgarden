@@ -16,6 +16,14 @@ public class growingtree : MonoBehaviour
 
     public GameObject gameManager;
 
+    public enum TreeType
+    {
+        Lemon,
+        Orange,
+        Apple
+    }
+    public TreeType treeType;
+
     private enum TreeState
     {
         Young,

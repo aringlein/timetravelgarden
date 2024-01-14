@@ -7,14 +7,13 @@ using TMPro;
 
 public class gamemanager : MonoBehaviour
 {
-    public GameObject lemonTreePrefab;
+    public GameObject treePrefab;
 
     public Slider slider;
 
     public TextMeshProUGUI clock;
 
-    private ArrayList lemonTrees = new ArrayList();
-
+    public TMP_Dropdown seedSelector;
 
     public int GRID_SIZE = 4;
     public int PLANE_SIZE = 6;
@@ -57,9 +56,21 @@ public class gamemanager : MonoBehaviour
 
                 //  Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
 
-                GameObject lemonTree = Instantiate(lemonTreePrefab, finalPoint, Quaternion.identity);
+                GameObject tree = Instantiate(treePrefab, finalPoint, Quaternion.identity);
+                growingtree treeScript = tree.GetComponent<growingtree>();
+                switch (seedSelector.value)
+                {
+                    case 0:
+                        treeScript.treeType = growingtree.TreeType.Lemon;
+                        break;
+                    case 1:
+                        treeScript.treeType = growingtree.TreeType.Orange;
+                        break;
+                    case 2:
+                        treeScript.treeType = growingtree.TreeType.Apple;
+                        break;
+                }
 
-                lemonTrees.Add(lemonTree);
 
             }
         }
