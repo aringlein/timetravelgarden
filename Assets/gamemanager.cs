@@ -120,7 +120,11 @@ public class gamemanager : MonoBehaviour
                         break;
                 }
 
-                GameObject tree = Instantiate(prefabToInstantiate, finalPoint, Quaternion.identity);
+                // Randomly rotate around x axis
+                float rotation = UnityEngine.Random.Range(0, 360);
+                Quaternion rotationQuaternion = Quaternion.Euler(rotation, 0, 0);
+
+                GameObject tree = Instantiate(prefabToInstantiate, finalPoint, rotationQuaternion);
 
 
             }
