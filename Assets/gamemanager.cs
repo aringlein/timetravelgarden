@@ -11,6 +11,8 @@ public class gamemanager : MonoBehaviour
     public GameObject growingBlueTreePrefab;
     public GameObject growingDeathTreePrefab;
 
+    public GameObject gardenTilePrefab;
+
     public Slider slider;
 
     public TextMeshProUGUI clock;
@@ -23,17 +25,28 @@ public class gamemanager : MonoBehaviour
     public int deathSeeds = 10;
 
     public float gridToWorldScaleFactor = 4.0f;
-    public static int GRID_SIZE = 12;
+    public static int GRID_SIZE = 16;
 
     public float daysPerTimeUnit = 1.0f;
-    private int[,] usedGridLocations = new int[GRID_SIZE, GRID_SIZE];
+
+    public enum TileState
+    {
+        Unavailable,
+        Available,
+        InUse,
+    };
+    private TileState[,] gridLocationState = new TileState[GRID_SIZE, GRID_SIZE];
+
+    private Dictionary<Vector2Int, GameObject> tileObjects = new Dictionary<Vector2Int, GameObject>();
+
 
     public float currentTime = 0; // units: TIME
-    // Start is called before the first frame update
+                                  // Start is called before the first frame update
     void Start()
     {
         currentTime = 0; //Time.time;
-                         // usedGridLocations = new int[GRID_SIZE, GRID_SIZE];
+
+        initGrid();
     }
 
     public void pickUpSeed(growingtree.TreeType treeType, int count, Vector3 point)
@@ -56,7 +69,12 @@ public class gamemanager : MonoBehaviour
     public void markGridLocation(Vector3 point, bool used)
     {
         Vector2Int gridLocation = getGridLocation(point);
-        usedGridLocations[gridLocation.x, gridLocation.y] = used ? 1 : 0;
+        if (gridLocationState[gridLocation.x, gridLocation.y] == TileState.Unavailable)
+        {
+            Debug.Log("Tried to mark unavailable grid location as used");
+            return;
+        }
+        gridLocationState[gridLocation.x, gridLocation.y] = used ? TileState.InUse : TileState.Available;
     }
 
     private Vector2Int getGridLocation(Vector3 position)
@@ -67,7 +85,7 @@ public class gamemanager : MonoBehaviour
         return new Vector2Int(x + GRID_SIZE / 2, z + GRID_SIZE / 2);
     }
 
-    private Vector3 getFinalPosition(Vector2Int gridLocation)
+    private Vector3 getPositionForGridLocation(Vector2Int gridLocation)
     {
         return new Vector3((gridLocation.x - GRID_SIZE / 2) * gridToWorldScaleFactor, 0, (gridLocation.y - GRID_SIZE / 2) * gridToWorldScaleFactor);
     }
@@ -95,9 +113,11 @@ public class gamemanager : MonoBehaviour
                 // Debug.Log("Grid location: " + gridLocation.x + ", " + gridLocation.y);
                 // Debug.Log("Candidate point: " + candidatePoint.x + ", " + candidatePoint.z);
                 if (gridLocation.x < 0 || gridLocation.x >= GRID_SIZE || gridLocation.y >= GRID_SIZE || gridLocation.y < 0) return;
-                if (usedGridLocations[gridLocation.x, gridLocation.y] == 1) return;
-                usedGridLocations[gridLocation.x, gridLocation.y] = 1;
-                Vector3 finalPoint = getFinalPosition(gridLocation);
+                if (gridLocationState[gridLocation.x, gridLocation.y] != TileState.Available)
+                {
+                    // Debug.Log("Tried to plant tree on unavailable grid location");
+                    return;
+                }
 
                 GameObject prefabToInstantiate;
                 switch (seedSelector.value)
@@ -124,18 +144,57 @@ public class gamemanager : MonoBehaviour
                 float rotation = UnityEngine.Random.Range(0, 360);
                 Quaternion rotationQuaternion = Quaternion.Euler(rotation, 0, 0);
 
+                Vector3 finalPoint = getPositionForGridLocation(gridLocation);
                 GameObject tree = Instantiate(prefabToInstantiate, finalPoint, rotationQuaternion);
-
+                gridLocationState[gridLocation.x, gridLocation.y] = TileState.InUse;
 
             }
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    // There may be a better way to do this than using a separate object per-tile, but this seemed easiest for now
+    private void updateTilesBasedOnGridLocationState()
     {
-        spawnTreeOnClick();
+        for (int x = 0; x < GRID_SIZE; x++)
+        {
+            for (int y = 0; y < GRID_SIZE; y++)
+            {
+                Vector2Int gridLocation = new Vector2Int(x, y);
+                tileObjects[gridLocation].GetComponent<gardentile>().updateTileState(gridLocationState[gridLocation.x, gridLocation.y]);
+            }
+        }
+    }
+    private void initGrid()
+    {
+        // Create tiles for all allowed grid locations
+        for (int x = 0; x < GRID_SIZE; x++)
+        {
+            for (int y = 0; y < GRID_SIZE; y++)
+            {
+                Vector2Int gridLocation = new Vector2Int(x, y);
+                Vector3 position = getPositionForGridLocation(gridLocation);
+                var tile = Instantiate(gardenTilePrefab, position, Quaternion.identity);
+                tileObjects[gridLocation] = tile;
 
+                // Mark the border as Unavailable, for testing out this functionality. My idea is that we can use this sort of tile state
+                // to implement buying/unlocking more land as the game progresses.
+                if (x != 0 && x != GRID_SIZE - 1 && y != 0 && y != GRID_SIZE - 1)
+                {
+                    gridLocationState[x, y] = TileState.Available;
+                }
+                else
+                {
+                    gridLocationState[x, y] = TileState.Unavailable;
+                }
+            }
+        }
+
+        updateTilesBasedOnGridLocationState();
+    }
+
+
+    private void updateUI()
+    {
         // Update current time
         currentTime = currentTime + (Time.deltaTime) * slider.value;
         float daysToDisplay = currentTime * (daysPerTimeUnit);
@@ -148,5 +207,15 @@ public class gamemanager : MonoBehaviour
         clock.text = daysInt + " days, " + hours + " hours";
 
         seedCounts.text = "Lemon Seeds: " + lemonSeeds + "\nBlue Seeds: " + blueSeeds + "\nDeath Seeds: " + deathSeeds;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        spawnTreeOnClick();
+
+        updateTilesBasedOnGridLocationState();
+
+        updateUI();
     }
 }
