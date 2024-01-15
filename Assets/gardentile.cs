@@ -10,7 +10,7 @@ public class gardentile : MonoBehaviour
     public GameObject tileAvailablePrefab;
     public GameObject activeTilePrefab;
 
-    private TileState tileState = TileState.Available;
+    public TileState tileState = TileState.Available;
     public GameObject ownedTile;
     // Start is called before the first frame update
     void Start()
