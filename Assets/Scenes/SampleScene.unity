@@ -210,50 +210,6 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 1
---- !u!1 &87315061
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 87315063}
-  - component: {fileID: 87315064}
-  m_Layer: 0
-  m_Name: TileObjectManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &87315063
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 87315061}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15.173374, y: -1.952137, z: 1.53368}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &87315064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 87315061}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 753cd9a577eb6c445a0c6028aaf01722, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &225411351
 GameObject:
   m_ObjectHideFlags: 0
@@ -1007,7 +963,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &752521837
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -2518,6 +2474,7 @@ MonoBehaviour:
   growingLemonTreePrefab: {fileID: 2600474005209242329, guid: 85dd4f66834173d4288a670456b6492a, type: 3}
   growingBlueTreePrefab: {fileID: 2600474005209242329, guid: 3c596ad721dfbd14c8c643936ccec3ed, type: 3}
   growingDeathTreePrefab: {fileID: 2600474005209242329, guid: 96d872e473af7194b995f11a5932daff, type: 3}
+  gardenTilePrefab: {fileID: 5784830351771834868, guid: 5ecda93974f2cd04293de69ea220eccf, type: 3}
   slider: {fileID: 1232595393}
   clock: {fileID: 1302293302}
   seedSelector: {fileID: 552994729}
@@ -2589,4 +2546,3 @@ SceneRoots:
   - {fileID: 2056466397}
   - {fileID: 1535545945}
   - {fileID: 1631563375}
-  - {fileID: 87315063}
