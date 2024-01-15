@@ -2481,8 +2481,7 @@ MonoBehaviour:
   lemonSeeds: 10
   blueSeeds: 10
   deathSeeds: 10
-  GRID_SIZE: 4
-  PLANE_SIZE: 6
+  gridToWorldScaleFactor: 4
   daysPerTimeUnit: 1
   currentTime: 0
 --- !u!4 &2056466397

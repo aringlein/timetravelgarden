@@ -51,8 +51,11 @@ public class growingtree : MonoBehaviour
 
     public void pickUpSeed()
     {
+        // Disallow seed pickups while time reversing
+        if (gameManager.GetComponent<gamemanager>().slider.value <= 0) return;
+
         seedPickUpAge = getCurrentTime() - birthTime;
-        gameManager.GetComponent<gamemanager>().pickUpSeed(treeType, 2);
+        gameManager.GetComponent<gamemanager>().pickUpSeed(treeType, 2, transform.position);
     }
 
 
@@ -77,6 +80,11 @@ public class growingtree : MonoBehaviour
         else return TreeState.PickedUp;
     }
 
+    bool gridSpaceInUse(TreeState state)
+    {
+        return state == TreeState.Young || state == TreeState.Middle || state == TreeState.Old || state == TreeState.Seed;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -94,6 +102,21 @@ public class growingtree : MonoBehaviour
         {
             return;
         }
+
+        bool gridSpaceNowInUse = gridSpaceInUse(expected);
+        bool gridSpaceWasInUse = gridSpaceInUse(treeState);
+        // If the ownedTree didn't exist before, but will now, mark the grid location as used
+        if (gridSpaceNowInUse && !gridSpaceWasInUse)
+        {
+            gameManager.GetComponent<gamemanager>().markGridLocation(transform.position, true);
+        }
+        // If the ownedTree did exist before, but doesn't now, mark the grid location as unused
+        else if (!gridSpaceNowInUse && gridSpaceWasInUse)
+        {
+            gameManager.GetComponent<gamemanager>().markGridLocation(transform.position, false);
+        }
+
+        // Note: ownedTree is not actually destroyed until the update loop completes
         Destroy(ownedTree);
         treeState = expected;
 
@@ -117,5 +140,6 @@ public class growingtree : MonoBehaviour
             ownedTree = Instantiate(seedPrefab, transform.position, Quaternion.identity);
             ownedTree.GetComponent<seed>().growingTree = gameObject;
         }
+
     }
 }

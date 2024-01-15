@@ -22,19 +22,21 @@ public class gamemanager : MonoBehaviour
     public int blueSeeds = 10;
     public int deathSeeds = 10;
 
-    public int GRID_SIZE = 4;
-    public int PLANE_SIZE = 6;
+    public float gridToWorldScaleFactor = 4.0f;
+    public static int GRID_SIZE = 12;
 
     public float daysPerTimeUnit = 1.0f;
+    private int[,] usedGridLocations = new int[GRID_SIZE, GRID_SIZE];
 
     public float currentTime = 0; // units: TIME
     // Start is called before the first frame update
     void Start()
     {
         currentTime = 0; //Time.time;
+                         // usedGridLocations = new int[GRID_SIZE, GRID_SIZE];
     }
 
-    public void pickUpSeed(growingtree.TreeType treeType, int count)
+    public void pickUpSeed(growingtree.TreeType treeType, int count, Vector3 point)
     {
         switch (treeType)
         {
@@ -48,10 +50,32 @@ public class gamemanager : MonoBehaviour
                 deathSeeds += count;
                 break;
         }
+        markGridLocation(point, false);
+    }
+
+    public void markGridLocation(Vector3 point, bool used)
+    {
+        Vector2Int gridLocation = getGridLocation(point);
+        usedGridLocations[gridLocation.x, gridLocation.y] = used ? 1 : 0;
+    }
+
+    private Vector2Int getGridLocation(Vector3 position)
+    {
+        int x = (int)Math.Round((position.x) / gridToWorldScaleFactor);
+        int z = (int)Math.Round((position.z) / gridToWorldScaleFactor);
+        // convert to all positive coordinates
+        return new Vector2Int(x + GRID_SIZE / 2, z + GRID_SIZE / 2);
+    }
+
+    private Vector3 getFinalPosition(Vector2Int gridLocation)
+    {
+        return new Vector3((gridLocation.x - GRID_SIZE / 2) * gridToWorldScaleFactor, 0, (gridLocation.y - GRID_SIZE / 2) * gridToWorldScaleFactor);
     }
 
     void spawnTreeOnClick()
     {
+        // Disallow planting trees while time is reversing
+        if (slider.value < 0) return;
         // Spawn a cube when mouse is clicked, where the mouse intersects with the plane
         if (Input.GetMouseButtonDown(0))
         {
@@ -64,20 +88,16 @@ public class gamemanager : MonoBehaviour
             if (plane.Raycast(ray, out distance))
             {
                 // Instantiate a lemon tree prefab at the intersection point
-
-                // // Instantiate a cube at the intersection point
-
-                //  GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 Vector3 candidatePoint = ray.GetPoint(distance);
-                int x = (int)Math.Round((candidatePoint.x) / GRID_SIZE);
-                int z = (int)Math.Round((candidatePoint.z) / GRID_SIZE);
-                if (x < -PLANE_SIZE || x > PLANE_SIZE || z > PLANE_SIZE || z < -PLANE_SIZE) return;
-                Vector3 finalPoint = new Vector3(x * GRID_SIZE, candidatePoint.y, z * GRID_SIZE);
+                Vector2Int gridLocation = getGridLocation(candidatePoint);
 
-                // Debug.Log("finalPoint: " + finalPoint);
-                // Debug.Log("candidatePoint: " + candidatePoint);
-
-                //  Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+                // Log
+                // Debug.Log("Grid location: " + gridLocation.x + ", " + gridLocation.y);
+                // Debug.Log("Candidate point: " + candidatePoint.x + ", " + candidatePoint.z);
+                if (gridLocation.x < 0 || gridLocation.x >= GRID_SIZE || gridLocation.y >= GRID_SIZE || gridLocation.y < 0) return;
+                if (usedGridLocations[gridLocation.x, gridLocation.y] == 1) return;
+                usedGridLocations[gridLocation.x, gridLocation.y] = 1;
+                Vector3 finalPoint = getFinalPosition(gridLocation);
 
                 GameObject prefabToInstantiate;
                 switch (seedSelector.value)
