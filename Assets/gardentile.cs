@@ -12,6 +12,8 @@ public class gardentile : MonoBehaviour
 
     public TileState tileState = TileState.Available;
     public GameObject ownedTile;
+
+    public Dictionary<float, GameObject> treesByBirthTime = new Dictionary<float, GameObject>();
     // Start is called before the first frame update
     void Start()
     {

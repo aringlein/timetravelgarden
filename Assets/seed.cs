@@ -15,7 +15,11 @@ public class seed : MonoBehaviour
     void Update()
     {
         // If already picked up, do nothing.
-        if (growingTree.GetComponent<growingtree>().seedPickUpAge != null) return;
+        if (growingTree.GetComponent<growingtree>().seedPickUpAge != null)
+        {
+            Debug.Log("Seed already picked up in the future");
+            return;
+        }
         // When this object is clicked on, set growingTree.seedPickUpTime to the current time
         if (Input.GetMouseButtonDown(0))
         {

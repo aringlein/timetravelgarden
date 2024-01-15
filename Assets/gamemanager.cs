@@ -92,64 +92,87 @@ public class gamemanager : MonoBehaviour
 
     void spawnTreeOnClick()
     {
-        // Disallow planting trees while time is reversing
-        if (slider.value < 0) return;
         // Spawn a cube when mouse is clicked, where the mouse intersects with the plane
-        if (Input.GetMouseButtonDown(0))
+        if (!Input.GetMouseButtonDown(0))
         {
-            // Create a ray from the camera to the mouse
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            // Create a plane at y=0
-            Plane plane = new Plane(Vector3.up, Vector3.zero);
-            // Find the point where the ray intersects the plane
-            float distance;
-            if (plane.Raycast(ray, out distance))
-            {
-                // Instantiate a lemon tree prefab at the intersection point
-                Vector3 candidatePoint = ray.GetPoint(distance);
-                Vector2Int gridLocation = getGridLocation(candidatePoint);
+            return;
+        }
 
-                // Log
-                // Debug.Log("Grid location: " + gridLocation.x + ", " + gridLocation.y);
-                // Debug.Log("Candidate point: " + candidatePoint.x + ", " + candidatePoint.z);
-                if (gridLocation.x < 0 || gridLocation.x >= GRID_SIZE || gridLocation.y >= GRID_SIZE || gridLocation.y < 0) return;
-                var tile = tileObjects[gridLocation].GetComponent<gardentile>();
-                if (tile.tileState != TileState.Available)
+        // Disallow planting trees while time is reversing
+        if (slider.value < 0)
+        {
+            Debug.Log("Can't plant tree while time reversing");
+            return;
+        }
+
+        // Create a ray from the camera to the mouse
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        // Create a plane at y=0
+        Plane plane = new Plane(Vector3.up, Vector3.zero);
+        // Find the point where the ray intersects the plane
+        float distance;
+        if (plane.Raycast(ray, out distance))
+        {
+            // Instantiate a lemon tree prefab at the intersection point
+            Vector3 candidatePoint = ray.GetPoint(distance);
+            Vector2Int gridLocation = getGridLocation(candidatePoint);
+
+            // Log
+            // Debug.Log("Grid location: " + gridLocation.x + ", " + gridLocation.y);
+            // Debug.Log("Candidate point: " + candidatePoint.x + ", " + candidatePoint.z);
+            if (gridLocation.x < 0 || gridLocation.x >= GRID_SIZE || gridLocation.y >= GRID_SIZE || gridLocation.y < 0) return;
+            var tile = tileObjects[gridLocation].GetComponent<gardentile>();
+            if (tile.tileState != TileState.Available)
+            {
+                // Debug.Log("Tried to plant tree on unavailable grid location");
+                return;
+            }
+
+            // Simple version of preventing trees from being planted on top of each other due to time travel:
+            // dont' allow planting a tree in the past on a square which will have a tree on it in the future
+            foreach (KeyValuePair<float, GameObject> kvp in tile.treesByBirthTime)
+            {
+                if (kvp.Key >= currentTime)
                 {
-                    // Debug.Log("Tried to plant tree on unavailable grid location");
+                    Debug.Log("Tried to plant tree in the past on a square which will have a tree on it in the future");
                     return;
                 }
-
-                GameObject prefabToInstantiate;
-                switch (seedSelector.value)
-                {
-                    case 0:
-                        if (lemonSeeds <= 0) return;
-                        prefabToInstantiate = growingLemonTreePrefab;
-                        lemonSeeds -= 1;
-                        break;
-                    case 1:
-                        if (blueSeeds <= 0) return;
-                        prefabToInstantiate = growingBlueTreePrefab;
-                        blueSeeds -= 1;
-                        break;
-                    case 2:
-                    default:
-                        if (deathSeeds <= 0) return;
-                        prefabToInstantiate = growingDeathTreePrefab;
-                        deathSeeds -= 1;
-                        break;
-                }
-
-                // Randomly rotate around x axis
-                float rotation = UnityEngine.Random.Range(0, 360);
-                Quaternion rotationQuaternion = Quaternion.Euler(rotation, 0, 0);
-
-                Vector3 finalPoint = getPositionForGridLocation(gridLocation);
-                GameObject tree = Instantiate(prefabToInstantiate, finalPoint, rotationQuaternion);
-                tileObjects[gridLocation].GetComponent<gardentile>().updateTileState(TileState.InUse);
-
             }
+            // A better version of this might involve allowing a tree to be planted as long as it will be dead by the time
+            // the future tree is planted, and auto-harvesting the seed when the future tree is planted.
+
+
+            GameObject prefabToInstantiate;
+            switch (seedSelector.value)
+            {
+                case 0:
+                    if (lemonSeeds <= 0) return;
+                    prefabToInstantiate = growingLemonTreePrefab;
+                    lemonSeeds -= 1;
+                    break;
+                case 1:
+                    if (blueSeeds <= 0) return;
+                    prefabToInstantiate = growingBlueTreePrefab;
+                    blueSeeds -= 1;
+                    break;
+                case 2:
+                default:
+                    if (deathSeeds <= 0) return;
+                    prefabToInstantiate = growingDeathTreePrefab;
+                    deathSeeds -= 1;
+                    break;
+            }
+
+            // Randomly rotate around x axis
+            float rotation = UnityEngine.Random.Range(0, 360);
+            Quaternion rotationQuaternion = Quaternion.Euler(rotation, 0, 0);
+
+            Vector3 finalPoint = getPositionForGridLocation(gridLocation);
+            GameObject tree = Instantiate(prefabToInstantiate, finalPoint, rotationQuaternion);
+            var gardentile = tileObjects[gridLocation].GetComponent<gardentile>();
+            gardentile.updateTileState(TileState.InUse);
+            gardentile.treesByBirthTime[currentTime] = tree;
+
         }
     }
 

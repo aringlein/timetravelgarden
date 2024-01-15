@@ -52,7 +52,11 @@ public class growingtree : MonoBehaviour
     public void pickUpSeed()
     {
         // Disallow seed pickups while time reversing
-        if (gameManager.GetComponent<gamemanager>().slider.value <= 0) return;
+        if (gameManager.GetComponent<gamemanager>().slider.value <= 0)
+        {
+            Debug.Log("Can't pick up seed while time reversing");
+            return;
+        }
 
         seedPickUpAge = getCurrentTime() - birthTime;
         gameManager.GetComponent<gamemanager>().pickUpSeed(treeType, 2, transform.position);
