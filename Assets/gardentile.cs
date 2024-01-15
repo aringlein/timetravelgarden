@@ -11,6 +11,7 @@ public class gardentile : MonoBehaviour
     public GameObject activeTilePrefab;
 
     public TileState tileState = TileState.Available;
+    public TileState queuedTileState = TileState.Available;
     public GameObject ownedTile;
 
     public Dictionary<float, GameObject> treesByBirthTime = new Dictionary<float, GameObject>();
@@ -20,8 +21,16 @@ public class gardentile : MonoBehaviour
         ownedTile = Instantiate(tileAvailablePrefab, transform.position, Quaternion.identity);
     }
 
-    public void updateTileState(TileState newTileState)
+    public void queueTileStateChange(TileState newTileState)
     {
+        queuedTileState = newTileState;
+    }
+    // I'm not sure why this is necessary, but without queuing the state and updating within Update(), 
+    // the tile doesn't change state properly.
+    // I'm guessing that updates to member GameObjects need to happen in Update()? Or I am doing something dumb.
+    public void updateTileStateFromQueuedState()
+    {
+        var newTileState = queuedTileState;
         if (newTileState == tileState)
         {
             return;
@@ -43,5 +52,10 @@ public class gardentile : MonoBehaviour
         }
         tileState = newTileState;
 
+    }
+
+    public void Update()
+    {
+        updateTileStateFromQueuedState();
     }
 }

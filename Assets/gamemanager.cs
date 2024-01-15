@@ -33,7 +33,9 @@ public class gamemanager : MonoBehaviour
 
     public float daysPerTimeUnit = 1.0f;
 
-    public int dollars = 10;
+    public int dollars = 100;
+
+    public int LAND_COST = 10;
 
     public enum TileState
     {
@@ -86,7 +88,7 @@ public class gamemanager : MonoBehaviour
             Debug.Log("Tried to mark unavailable grid location as used");
             return;
         }
-        tile.updateTileState(used ? TileState.InUse : TileState.Available);
+        tile.queueTileStateChange(used ? TileState.InUse : TileState.Available);
     }
 
     private Vector2Int getGridLocation(Vector3 position)
@@ -102,7 +104,80 @@ public class gamemanager : MonoBehaviour
         return new Vector3((gridLocation.x - GRID_SIZE / 2) * gridToWorldScaleFactor, 0, (gridLocation.y - GRID_SIZE / 2) * gridToWorldScaleFactor);
     }
 
-    void spawnTreeOnClick()
+    void onClickGridLocationHelper(Vector2Int gridLocation)
+    {
+        // Log
+        // Debug.Log("Grid location: " + gridLocation.x + ", " + gridLocation.y);
+        // Debug.Log("Candidate point: " + candidatePoint.x + ", " + candidatePoint.z);
+        if (gridLocation.x < 0 || gridLocation.x >= GRID_SIZE || gridLocation.y >= GRID_SIZE || gridLocation.y < 0) return;
+        var tile = tileObjects[gridLocation].GetComponent<gardentile>();
+
+        switch (tile.tileState)
+        {
+            case TileState.InUse:
+                Debug.Log("Tried to plant tree on in-use grid location");
+                return;
+            case TileState.Unavailable:
+                // Try to buy the land
+                if (dollars - LAND_COST < 0) return;
+                dollars -= LAND_COST;
+                tile.queueTileStateChange(TileState.Available);
+                Debug.Log("Bought land");
+                break;
+            case TileState.Available:
+                spawnTreeAtLocationHelper(gridLocation, tile);
+                break;
+        }
+    }
+
+    void spawnTreeAtLocationHelper(Vector2Int gridLocation, gardentile tile)
+    {
+        // Simple version of preventing trees from being planted on top of each other due to time travel:
+        // dont' allow planting a tree in the past on a square which will have a tree on it in the future
+        foreach (KeyValuePair<float, GameObject> kvp in tile.treesByBirthTime)
+        {
+            if (kvp.Key >= currentTime)
+            {
+                Debug.Log("Tried to plant tree in the past on a square which will have a tree on it in the future");
+                return;
+            }
+        }
+        // A better version of this might involve allowing a tree to be planted as long as it will be dead by the time
+        // the future tree is planted, and auto-harvesting the seed when the future tree is planted.
+
+
+        GameObject prefabToInstantiate;
+        switch (seedSelector.value)
+        {
+            case 0:
+                if (lemonSeeds <= 0) return;
+                prefabToInstantiate = growingLemonTreePrefab;
+                lemonSeeds -= 1;
+                break;
+            case 1:
+                if (blueSeeds <= 0) return;
+                prefabToInstantiate = growingBlueTreePrefab;
+                blueSeeds -= 1;
+                break;
+            case 2:
+            default:
+                if (deathSeeds <= 0) return;
+                prefabToInstantiate = growingDeathTreePrefab;
+                deathSeeds -= 1;
+                break;
+        }
+
+        // Randomly rotate around x axis
+        float rotation = UnityEngine.Random.Range(0, 360);
+        Quaternion rotationQuaternion = Quaternion.Euler(rotation, 0, 0);
+
+        Vector3 finalPoint = getPositionForGridLocation(gridLocation);
+        GameObject tree = Instantiate(prefabToInstantiate, finalPoint, rotationQuaternion);
+        tile.queueTileStateChange(TileState.InUse);
+        tile.treesByBirthTime[currentTime] = tree;
+    }
+
+    void updateTileStatesOnClick()
     {
 
         // Spawn a cube when mouse is clicked, where the mouse intersects with the plane
@@ -129,63 +204,7 @@ public class gamemanager : MonoBehaviour
             // Instantiate a lemon tree prefab at the intersection point
             Vector3 candidatePoint = ray.GetPoint(distance);
             Vector2Int gridLocation = getGridLocation(candidatePoint);
-
-            // Log
-            // Debug.Log("Grid location: " + gridLocation.x + ", " + gridLocation.y);
-            // Debug.Log("Candidate point: " + candidatePoint.x + ", " + candidatePoint.z);
-            if (gridLocation.x < 0 || gridLocation.x >= GRID_SIZE || gridLocation.y >= GRID_SIZE || gridLocation.y < 0) return;
-            var tile = tileObjects[gridLocation].GetComponent<gardentile>();
-            if (tile.tileState != TileState.Available)
-            {
-                // Debug.Log("Tried to plant tree on unavailable grid location");
-                return;
-            }
-
-            // Simple version of preventing trees from being planted on top of each other due to time travel:
-            // dont' allow planting a tree in the past on a square which will have a tree on it in the future
-            foreach (KeyValuePair<float, GameObject> kvp in tile.treesByBirthTime)
-            {
-                if (kvp.Key >= currentTime)
-                {
-                    Debug.Log("Tried to plant tree in the past on a square which will have a tree on it in the future");
-                    return;
-                }
-            }
-            // A better version of this might involve allowing a tree to be planted as long as it will be dead by the time
-            // the future tree is planted, and auto-harvesting the seed when the future tree is planted.
-
-
-            GameObject prefabToInstantiate;
-            switch (seedSelector.value)
-            {
-                case 0:
-                    if (lemonSeeds <= 0) return;
-                    prefabToInstantiate = growingLemonTreePrefab;
-                    lemonSeeds -= 1;
-                    break;
-                case 1:
-                    if (blueSeeds <= 0) return;
-                    prefabToInstantiate = growingBlueTreePrefab;
-                    blueSeeds -= 1;
-                    break;
-                case 2:
-                default:
-                    if (deathSeeds <= 0) return;
-                    prefabToInstantiate = growingDeathTreePrefab;
-                    deathSeeds -= 1;
-                    break;
-            }
-
-            // Randomly rotate around x axis
-            float rotation = UnityEngine.Random.Range(0, 360);
-            Quaternion rotationQuaternion = Quaternion.Euler(rotation, 0, 0);
-
-            Vector3 finalPoint = getPositionForGridLocation(gridLocation);
-            GameObject tree = Instantiate(prefabToInstantiate, finalPoint, rotationQuaternion);
-            var gardentile = tileObjects[gridLocation].GetComponent<gardentile>();
-            gardentile.updateTileState(TileState.InUse);
-            gardentile.treesByBirthTime[currentTime] = tree;
-
+            onClickGridLocationHelper(gridLocation);
         }
     }
 
@@ -201,16 +220,9 @@ public class gamemanager : MonoBehaviour
                 var tile = Instantiate(gardenTilePrefab, position, Quaternion.identity);
                 tileObjects[gridLocation] = tile;
 
-                // Mark the border as Unavailable, for testing out this functionality. My idea is that we can use this sort of tile state
-                // to implement buying/unlocking more land as the game progresses.
-                if (x != 0 && x != GRID_SIZE - 1 && y != 0 && y != GRID_SIZE - 1)
-                {
-                    tile.GetComponent<gardentile>().updateTileState(TileState.Available);
-                }
-                else
-                {
-                    tile.GetComponent<gardentile>().updateTileState(TileState.Unavailable);
-                }
+
+                // Mark all tiles as unavailable at the start
+                tile.GetComponent<gardentile>().queueTileStateChange(TileState.Unavailable);
             }
         }
     }
@@ -250,7 +262,7 @@ public class gamemanager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        spawnTreeOnClick();
+        updateTileStatesOnClick();
 
         updateUI();
     }
