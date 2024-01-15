@@ -4,6 +4,7 @@ using UnityEngine;
 using Math = System.Math;
 using UnityEngine.UI;
 using TMPro;
+using EventSystem = UnityEngine.EventSystems.EventSystem;
 
 public class gamemanager : MonoBehaviour
 {
@@ -14,20 +15,25 @@ public class gamemanager : MonoBehaviour
     public GameObject gardenTilePrefab;
 
     public Slider slider;
-
     public TextMeshProUGUI clock;
-
     public TMP_Dropdown seedSelector;
     public TextMeshProUGUI seedCounts;
+    public Button sellLemonSeed;
+    public Button buyLemonSeed;
+    public TextMeshProUGUI money;
+
+    public EventSystem eventSystem;
 
     public int lemonSeeds = 10;
-    public int blueSeeds = 10;
-    public int deathSeeds = 10;
+    public int blueSeeds = 5;
+    public int deathSeeds = 1;
 
     public float gridToWorldScaleFactor = 4.0f;
     public static int GRID_SIZE = 16;
 
     public float daysPerTimeUnit = 1.0f;
+
+    public int dollars = 10;
 
     public enum TileState
     {
@@ -46,6 +52,12 @@ public class gamemanager : MonoBehaviour
         currentTime = 0; //Time.time;
 
         initGrid();
+
+        sellLemonSeed.onClick.AddListener(sellLemonSeedOnClick);
+        buyLemonSeed.onClick.AddListener(buyLemonSeedOnClick);
+
+        var canvas = GameObject.Find("Canvas");
+        eventSystem = canvas.GetComponent<EventSystem>();
     }
 
     public void pickUpSeed(growingtree.TreeType treeType, int count, Vector3 point)
@@ -92,8 +104,9 @@ public class gamemanager : MonoBehaviour
 
     void spawnTreeOnClick()
     {
+
         // Spawn a cube when mouse is clicked, where the mouse intersects with the plane
-        if (!Input.GetMouseButtonDown(0))
+        if (!Input.GetMouseButtonDown(0) || eventSystem.IsPointerOverGameObject())
         {
             return;
         }
@@ -217,6 +230,21 @@ public class gamemanager : MonoBehaviour
         clock.text = daysInt + " days, " + hours + " hours";
 
         seedCounts.text = "Lemon Seeds: " + lemonSeeds + "\nBlue Seeds: " + blueSeeds + "\nDeath Seeds: " + deathSeeds;
+
+        money.text = "Money: $" + dollars;
+    }
+
+    public void sellLemonSeedOnClick()
+    {
+        lemonSeeds -= 1;
+        dollars += 1;
+    }
+    static int LEMON_SEED_COST = 2;
+    public void buyLemonSeedOnClick()
+    {
+        if (dollars - LEMON_SEED_COST < 0) return;
+        dollars -= LEMON_SEED_COST;
+        lemonSeeds += 1;
     }
 
     // Update is called once per frame
