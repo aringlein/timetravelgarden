@@ -25,8 +25,8 @@ public class gamemanager : MonoBehaviour
     public EventSystem eventSystem;
 
     public int lemonSeeds = 10;
-    public int blueSeeds = 5;
-    public int deathSeeds = 1;
+    public int blueSeeds = 10;
+    public int deathSeeds = 10;
 
     public float gridToWorldScaleFactor = 4.0f;
     public static int GRID_SIZE = 16;
@@ -130,39 +130,69 @@ public class gamemanager : MonoBehaviour
         }
     }
 
+    GameObject treePrefabToInstantiate()
+    {
+        switch (seedSelector.value)
+        {
+            case 0:
+                return growingLemonTreePrefab;
+            case 1:
+                return growingBlueTreePrefab;
+            case 2:
+            default:
+                return growingDeathTreePrefab;
+        }
+    }
+
     void spawnTreeAtLocationHelper(Vector2Int gridLocation, gardentile tile)
     {
-        // Simple version of preventing trees from being planted on top of each other due to time travel:
-        // dont' allow planting a tree in the past on a square which will have a tree on it in the future
+        GameObject treePrefab = treePrefabToInstantiate();
+        growingtree tree = treePrefab.GetComponent<growingtree>();
+
+        if (!tree.canBePlanted(slider.value))
+        {
+            Debug.Log("Can't plant tree with given time direction");
+            return;
+        }
+        // Prevent trees from being planted on top of each other due to time travel:
+        // Allow a tree to be planted as long as it will be dead by the time
+        // the future tree is planted.
+        // TODO: implement auto-picking up seeds when the new tree is created
+        int newTreeScaleFactor = tree.growthDirectionInTime;
         foreach (KeyValuePair<float, GameObject> kvp in tile.treesByBirthTime)
         {
-            if (kvp.Key >= currentTime)
+            double otherTreeBirthTime = kvp.Key;
+            growingtree otherTree = kvp.Value.GetComponent<growingtree>();
+            double otherTreeDeathTime = otherTree.calculateInstantiatedTreeDeathTime();
+            double newTreeBirthTime = currentTime;
+            double newTreeDeathTime = currentTime + (tree.calculateTreeLifespan()) * newTreeScaleFactor;
+            // account for tenet trees
+            double newTreeStartTime = Math.Min(newTreeBirthTime, newTreeDeathTime);
+            double newTreeEndTime = Math.Max(newTreeBirthTime, newTreeDeathTime);
+            double otherTreeStartTime = Math.Min(otherTreeBirthTime, otherTreeDeathTime);
+            double otherTreeEndTime = Math.Max(otherTreeBirthTime, otherTreeDeathTime);
+            bool treesAliveAtSameTime = newTreeStartTime <= otherTreeEndTime && otherTreeStartTime <= newTreeEndTime;
+            if (treesAliveAtSameTime)
             {
-                Debug.Log("Tried to plant tree in the past on a square which will have a tree on it in the future");
+                Debug.Log("Failed to plant tree due to time travel shenaningans");
                 return;
             }
         }
-        // A better version of this might involve allowing a tree to be planted as long as it will be dead by the time
-        // the future tree is planted, and auto-harvesting the seed when the future tree is planted.
 
-
-        GameObject prefabToInstantiate;
+        // TODO: deduplicate this switch statement with prefabToInstantiate
         switch (seedSelector.value)
         {
             case 0:
                 if (lemonSeeds <= 0) return;
-                prefabToInstantiate = growingLemonTreePrefab;
                 lemonSeeds -= 1;
                 break;
             case 1:
                 if (blueSeeds <= 0) return;
-                prefabToInstantiate = growingBlueTreePrefab;
                 blueSeeds -= 1;
                 break;
             case 2:
             default:
                 if (deathSeeds <= 0) return;
-                prefabToInstantiate = growingDeathTreePrefab;
                 deathSeeds -= 1;
                 break;
         }
@@ -172,9 +202,9 @@ public class gamemanager : MonoBehaviour
         Quaternion rotationQuaternion = Quaternion.Euler(rotation, 0, 0);
 
         Vector3 finalPoint = getPositionForGridLocation(gridLocation);
-        GameObject tree = Instantiate(prefabToInstantiate, finalPoint, rotationQuaternion);
+        GameObject newTree = Instantiate(treePrefab, finalPoint, rotationQuaternion);
         tile.queueTileStateChange(TileState.InUse);
-        tile.treesByBirthTime[currentTime] = tree;
+        tile.treesByBirthTime[currentTime] = newTree;
     }
 
     void updateTileStatesOnClick()
@@ -183,13 +213,6 @@ public class gamemanager : MonoBehaviour
         // Spawn a cube when mouse is clicked, where the mouse intersects with the plane
         if (!Input.GetMouseButtonDown(0) || eventSystem.IsPointerOverGameObject())
         {
-            return;
-        }
-
-        // Disallow planting trees while time is reversing
-        if (slider.value < 0)
-        {
-            Debug.Log("Can't plant tree while time reversing");
             return;
         }
 

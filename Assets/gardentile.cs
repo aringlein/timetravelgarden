@@ -28,6 +28,7 @@ public class gardentile : MonoBehaviour
     // I'm not sure why this is necessary, but without queuing the state and updating within Update(), 
     // the tile doesn't change state properly.
     // I'm guessing that updates to member GameObjects need to happen in Update()? Or I am doing something dumb.
+    // If we make tile state do more than just change the tile's appearance, we'll need to do something more sophisticated.
     public void updateTileStateFromQueuedState()
     {
         var newTileState = queuedTileState;

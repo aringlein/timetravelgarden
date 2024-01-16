@@ -49,10 +49,11 @@ MonoBehaviour:
   treePrefabOld: {fileID: 1356352691811968, guid: 27f8631de90e27e4a8cf74d44f72086a, type: 3}
   seedPrefab: {fileID: 5943492688468611428, guid: 31099f47160985b428bdb62200e60774, type: 3}
   birthTime: 0
-  timeToBeYoung: 100
-  timeToBeMiddle: 200
-  timeToBeOld: 100
+  timeToBeYoung: 50
+  timeToBeMiddle: 60
+  timeToBeOld: 40
   gameManager: {fileID: 0}
   treeType: 2
   SCALE_RATE: 0.01
   MAX_SCALE: 20
+  growthDirectionInTime: -1

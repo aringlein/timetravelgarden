@@ -44,15 +44,38 @@ public class growingtree : MonoBehaviour
     public float MAX_SCALE = 2.0f;
     // public float MIN_SCALE = 1.0f;
 
+    // Trees with negative growth direction are "tenet trees" which grow backwards in time
+
+    public int growthDirectionInTime = 1;
+
+    public double calculateTreeLifespan()
+    {
+        return (timeToBeYoung + timeToBeMiddle + timeToBeOld);
+    }
+
+    public double calculateInstantiatedTreeDeathTime()
+    {
+        if (gameObject == null)
+        {
+            Debug.Log("gameObject is null, might get bad value for death time");
+        }
+        return birthTime + calculateTreeLifespan() * growthDirectionInTime;
+    }
+
     private float getCurrentTime()
     {
         return gameManager.GetComponent<gamemanager>().currentTime;
     }
 
+    public bool canBePlanted(double timeFlowRate)
+    {
+        return timeFlowRate * growthDirectionInTime > 0;
+    }
+
     public void pickUpSeed()
     {
         // Disallow seed pickups while time reversing
-        if (gameManager.GetComponent<gamemanager>().slider.value <= 0)
+        if (gameManager.GetComponent<gamemanager>().slider.value * growthDirectionInTime <= 0)
         {
             Debug.Log("Can't pick up seed while time reversing");
             return;
@@ -73,9 +96,14 @@ public class growingtree : MonoBehaviour
         treeState = TreeState.Young;
     }
 
+    private double getTimeSinceBirth()
+    {
+        return (getCurrentTime() - birthTime) * growthDirectionInTime;
+    }
+
     TreeState expectedState()
     {
-        float timeSinceBirth = (float)(getCurrentTime() - birthTime);
+        var timeSinceBirth = getTimeSinceBirth();
         if (timeSinceBirth < 0) return TreeState.PreBirth;
         else if (timeSinceBirth <= timeToBeYoung) return TreeState.Young;
         else if (timeSinceBirth <= timeToBeYoung + timeToBeMiddle) return TreeState.Middle;
@@ -93,11 +121,10 @@ public class growingtree : MonoBehaviour
     void Update()
     {
 
-        float currentTime = getCurrentTime();
         if (ownedTree != null && treeState != TreeState.Seed)
         {
             // Scale the tree based on time
-            float scale = 1 + Math.Min((float)(currentTime - birthTime) * SCALE_RATE, MAX_SCALE);
+            float scale = 1 + Math.Min((float)(getTimeSinceBirth()) * SCALE_RATE, MAX_SCALE);
             ownedTree.transform.localScale = new Vector3(scale, scale, scale);
         }
 
